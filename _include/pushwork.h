@@ -18,30 +18,21 @@
 
 class PushWork {
 public:
-    PushWork(std::string image_path, int queue_size, int width, int height);
+    PushWork(int queue_size, int width, int height);
     ~PushWork();
 
 public:
-    void test01();
-    void test02();
-    void test03();
-
-public:
     int init();  // 开启线程
+    bool put_data(cv::Mat mat);
     void stop(int timeout_seconds);
     void set_finish();
 
 private:
-    bool put_data(cv::Mat mat);
     void consumer_thread();
     void init_params();
-    void load_images();
-    void print_files();
 
 
 private:
-    std::string image_path_;
-    std::vector<std::filesystem::path> images;  // 图片路径列表
     int fps = 25;
     std::mutex mtx_;  // 线程运行标志位的互斥量
 

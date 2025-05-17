@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(main)
+project(compressor)
 
 add_compile_options(-std=c++17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
@@ -10,14 +10,16 @@ set(PYBIND11_CPP_STANDARD -std=c++17)
 find_package(pybind11 REQUIRED)
 find_package(SDL2 REQUIRED)
 
-add_executable(main
-            main.cpp
+
+pybind11_add_module(compressor
+            src/py_pushwork.cpp
             src/utils.cpp
             src/encoder.cpp
             src/pushwork.cpp
 )
 
-target_include_directories(main PRIVATE 
+
+target_include_directories(compressor PRIVATE 
     ./_include
 	/home/wanghf/ffmpeg_build/include
     /home/wanghf/anaconda3/lib/python3.12/site-packages/numpy/core/include
@@ -27,14 +29,14 @@ target_include_directories(main PRIVATE
 )
 
 
-target_link_directories(main PRIVATE
+target_link_directories(compressor PRIVATE
     /usr/local/lib
 	/home/wanghf/ffmpeg_build/lib
 	${SDL2_LIBRARY_DIRS}
 )
 
 
-target_link_libraries(main
+target_link_libraries(compressor PRIVATE
     pybind11::module
     avformat
     avcodec

@@ -5,10 +5,9 @@
 #include "utils.h"
 
 
-PushWork::PushWork(std::string image_path, int queue_size, int width, int height) : 
-                image_path_(image_path), queue_(queue_size),
+PushWork::PushWork(int queue_size, int width, int height) : 
+                queue_(queue_size),
                 encoder_(width, height) {
-    load_images();
 }
 
 
@@ -19,27 +18,6 @@ PushWork::~PushWork() {
     } 
 }
 
-
-void PushWork::load_images() {
-    for (const auto& entry : std::filesystem::directory_iterator(image_path_)) {
-        if (entry.is_regular_file()) {
-            const std::string ext = entry.path().extension().string();
-            if (ext == ".jpg" || ext == ".png" || ext == ".bmp") {
-                images.push_back(entry.path());
-            }
-        }
-    }  // end for
-}
-
-
-void PushWork::print_files() {
-    for (const auto& entry : std::filesystem::directory_iterator(image_path_)) {
-        if (entry.is_regular_file()) {
-            const std::string cur_file = entry.path().filename();
-            std::cout << "cur_file: " << cur_file << std::endl;
-        }
-    }
-}
 
 /**
  * 开启线程
@@ -53,73 +31,6 @@ int PushWork::init() {
     running = true;
     worker_ = std::thread(&PushWork::consumer_thread, this);
     return ret;  
-}
-
-
-void PushWork::test01() {
-    for (const auto& img_path : images) {
-        cv::Mat cv_mat = cv::imread(img_path.string(), cv::IMREAD_COLOR);
-        if (cv_mat.empty()) {
-            std::cerr << "Warning: Failed to read " << img_path << std::endl;
-            continue;
-        }
-        encoder_.frame_process(cv_mat);
-    }
-}
-
-// 模拟功能: 以一定间隔取出图片处理
-void PushWork::test02() {
-    size_t currentIndex = 0;
-    auto startTime = std::chrono::steady_clock::now();
-    int displayTimeInSeconds = 60;
-
-    while (true) {
-        auto currentTime = std::chrono::steady_clock::now();
-        auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
-        if (elapsedTime > displayTimeInSeconds) {
-            break;
-        }
-        auto path = images[currentIndex];  // 当前图片
-
-        cv::Mat cv_mat = cv::imread(path.string(), cv::IMREAD_COLOR);
-        if (cv_mat.empty()) {
-            std::cerr << "Warning: Failed to read " << path << std::endl;
-            continue;
-        }
-        auto start_time = get_time_ms();
-        encoder_.frame_process(cv_mat);
-        auto end_time = get_time_ms();
-        printf("frame process time cost: %ld ms\n", end_time - start_time);
-
-        currentIndex = (currentIndex + 1) % images.size();
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    }
-
-}
-
-// 模拟功能: 交给队列, 作为生产者
-void PushWork::test03() {
-    size_t currentIndex = 0;
-    auto startTime = std::chrono::steady_clock::now();
-    int displayTimeInSeconds = 60;
-
-    while (true) {
-        auto currentTime = std::chrono::steady_clock::now();
-        auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
-        if (elapsedTime > displayTimeInSeconds) {
-            break;
-        }
-        auto path = images[currentIndex];  // 当前图片
-        cv::Mat cv_mat = cv::imread(path.string(), cv::IMREAD_COLOR);
-        if (cv_mat.empty()) {
-            std::cerr << "Warning: Failed to read " << path << std::endl;
-            continue;
-        }
-        put_data(cv_mat);
-        currentIndex = (currentIndex + 1) % images.size();
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    }
-
 }
 
 
@@ -158,7 +69,6 @@ bool PushWork::put_data(cv::Mat mat) {
  * 线程运行起始时的初始化
  */
 void PushWork::init_params() {
-    this->print_files();
 }
 
 
